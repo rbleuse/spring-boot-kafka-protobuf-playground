@@ -1,4 +1,4 @@
-package io.github.rbleuse.spring_boot_kafka_protobuff
+package io.github.rbleuse.playground
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
