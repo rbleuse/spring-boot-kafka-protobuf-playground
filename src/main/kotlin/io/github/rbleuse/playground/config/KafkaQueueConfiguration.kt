@@ -110,7 +110,11 @@ class KafkaQueueConfiguration(
         @Value("\${playground.kafka.dlt-topic}") dltTopic: String,
     ) = ShareKafkaListenerContainerFactory(shareConsumerFactory).apply {
         setShareConsumerRecordRecoverer { record, _ ->
-            byteKafkaTemplate.send(dltTopic, originalBytes(record)).get()
+            try {
+                byteKafkaTemplate.send(dltTopic, originalBytes(record)).get()
+            } catch (exception: Exception) {
+                logAccessor.error(exception) { "Failed to publish rejected queue message to $dltTopic" }
+            }
             AcknowledgeType.REJECT
         }
     }
