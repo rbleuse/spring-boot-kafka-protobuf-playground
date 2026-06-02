@@ -26,4 +26,14 @@ class QueueMessageSerdeTests {
             deserializer.deserialize("playground.queue", byteArrayOf(0x80.toByte()))
         }
     }
+
+    @Test
+    fun `serializes tombstone as null`() {
+        serializer.serialize("playground.queue", null) shouldBe null
+    }
+
+    @Test
+    fun `deserializes tombstone as null`() {
+        deserializer.deserialize("playground.queue", null) shouldBe null
+    }
 }

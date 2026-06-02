@@ -24,7 +24,6 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-kafka")
-	implementation("org.springframework.kafka:spring-kafka")
 	implementation("com.google.protobuf:protobuf-java:$protobufVersion")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")

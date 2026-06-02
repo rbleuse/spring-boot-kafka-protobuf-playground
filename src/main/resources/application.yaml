@@ -7,3 +7,4 @@ playground:
     topic: playground.queue
     dlt-topic: playground.queue.DLT
     share-group: playground.queue.workers
+    listener-auto-startup: true
