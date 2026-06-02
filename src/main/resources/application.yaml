@@ -1,3 +1,9 @@
 spring:
   application:
     name: spring-boot-kafka-protobuff
+
+playground:
+  kafka:
+    topic: playground.queue
+    dlt-topic: playground.queue.DLT
+    share-group: playground.queue.workers
