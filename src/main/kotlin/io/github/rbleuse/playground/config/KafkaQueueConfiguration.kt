@@ -11,6 +11,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.AcknowledgeType
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.ConfigResource
 import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -111,13 +112,23 @@ class KafkaQueueConfiguration(
     ) = ShareKafkaListenerContainerFactory(shareConsumerFactory).apply {
         setShareConsumerRecordRecoverer { record, _ ->
             try {
-                byteKafkaTemplate.send(dltTopic, originalBytes(record)).get()
+                byteKafkaTemplate.send(rejectedRecord(dltTopic, record)).get()
             } catch (exception: Exception) {
                 logAccessor.error(exception) { "Failed to publish rejected queue message to $dltTopic" }
             }
             AcknowledgeType.REJECT
         }
     }
+
+    private fun rejectedRecord(dltTopic: String, record: ConsumerRecord<*, *>) =
+        ProducerRecord<String, ByteArray>(
+            dltTopic,
+            record.partition(),
+            record.timestamp(),
+            record.key()?.toString(),
+            originalBytes(record),
+            record.headers(),
+        )
 
     private fun originalBytes(record: ConsumerRecord<*, *>): ByteArray =
         SerializationUtils.getExceptionFromHeader(

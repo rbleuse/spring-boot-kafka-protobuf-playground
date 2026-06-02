@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.kafka.support.KafkaUtils
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.web.client.RestClient
@@ -70,7 +71,7 @@ class KafkaQueueIntegrationTests {
     fun `routes malformed bytes to dlt and processes a later valid audit`() = runSuspending {
         val malformed = byteArrayOf(0x80.toByte())
         byteProducer().use { producer ->
-            producer.send(ProducerRecord(TOPIC, malformed)).get()
+            producer.send(ProducerRecord(TOPIC, "malformed-key", malformed)).get()
         }
 
         post("""{"type":"audit","actor":"admin","action":"after-malformed"}""")
@@ -78,9 +79,10 @@ class KafkaQueueIntegrationTests {
         byteConsumer().use { consumer ->
             consumer.subscribe(listOf(DLT_TOPIC))
             eventually(10.seconds) {
-                consumer.poll(Duration.ofMillis(250))
-                    .map { it.value() }
-                    .firstOrNull() shouldBe malformed
+                val rejected = consumer.poll(Duration.ofMillis(250)).firstOrNull()
+                rejected?.key() shouldBe "malformed-key"
+                rejected?.value() shouldBe malformed
+                (rejected?.headers()?.lastHeader(KafkaUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER) != null) shouldBe true
             }
         }
         eventually(10.seconds) {
