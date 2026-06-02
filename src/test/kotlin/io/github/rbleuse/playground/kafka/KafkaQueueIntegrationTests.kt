@@ -18,6 +18,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
@@ -41,14 +42,10 @@ import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class KafkaQueueIntegrationTests {
-
-    @org.springframework.beans.factory.annotation.Autowired
-    private lateinit var processedMessages: ProcessedMessages
-
-    @LocalServerPort
-    private var port: Int = 0
-
+class KafkaQueueIntegrationTests @Autowired constructor(
+    private val processedMessages: ProcessedMessages,
+    @LocalServerPort private val port: Int
+) {
     @BeforeEach
     fun clearProcessedMessages() {
         processedMessages.clear()
