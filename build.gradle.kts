@@ -27,7 +27,10 @@ dependencies {
 	implementation("com.google.protobuf:protobuf-java:$protobufVersion")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude(group = "org.mockito", module = "mockito-core")
+	}
+	testImplementation("com.ninja-squad:springmockk:5.0.1")
 	testImplementation("org.testcontainers:testcontainers-kafka")
 	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testImplementation("io.kotest:kotest-assertions-core-jvm:6.1.11")

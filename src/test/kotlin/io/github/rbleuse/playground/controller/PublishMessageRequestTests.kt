@@ -1,7 +1,7 @@
 package io.github.rbleuse.playground.controller
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.ObjectMapper
 
@@ -13,40 +13,40 @@ class PublishMessageRequestTests {
 	fun `deserializes email discriminator`() {
 		val request = read("""{"type":"email","recipient":"person@example.com","subject":"Hello"}""")
 
-		assertEquals(EmailRequest(recipient = "person@example.com", subject = "Hello"), request)
+		request shouldBe EmailRequest(recipient = "person@example.com", subject = "Hello")
 	}
 
 	@Test
 	fun `deserializes sms discriminator`() {
 		val request = read("""{"type":"sms","phoneNumber":"+15551234567","text":"On my way"}""")
 
-		assertEquals(SmsRequest(phoneNumber = "+15551234567", text = "On my way"), request)
+		request shouldBe SmsRequest(phoneNumber = "+15551234567", text = "On my way")
 	}
 
 	@Test
 	fun `deserializes push discriminator`() {
 		val request = read("""{"type":"push","deviceToken":"device-token","title":"New message"}""")
 
-		assertEquals(PushRequest(deviceToken = "device-token", title = "New message"), request)
+		request shouldBe PushRequest(deviceToken = "device-token", title = "New message")
 	}
 
 	@Test
 	fun `deserializes audit discriminator`() {
 		val request = read("""{"type":"audit","actor":"admin","action":"user-disabled"}""")
 
-		assertEquals(AuditRequest(actor = "admin", action = "user-disabled"), request)
+		request shouldBe AuditRequest(actor = "admin", action = "user-disabled")
 	}
 
 	@Test
 	fun `rejects missing discriminator`() {
-		assertThrows(Exception::class.java) {
+		shouldThrow<Exception> {
 			read("""{"recipient":"person@example.com","subject":"Hello"}""")
 		}
 	}
 
 	@Test
 	fun `rejects unknown discriminator`() {
-		assertThrows(Exception::class.java) {
+		shouldThrow<Exception> {
 			read("""{"type":"other","value":"ignored"}""")
 		}
 	}
