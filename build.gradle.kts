@@ -30,6 +30,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.kafka:spring-kafka-test")
 	testImplementation("org.testcontainers:testcontainers-kafka")
+	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testImplementation("io.kotest:kotest-assertions-core-jvm:6.1.0")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

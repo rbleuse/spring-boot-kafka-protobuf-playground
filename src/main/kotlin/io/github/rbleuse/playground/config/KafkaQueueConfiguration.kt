@@ -3,21 +3,34 @@ package io.github.rbleuse.playground.config
 import io.github.rbleuse.playground.kafka.QueueMessageDeserializer
 import io.github.rbleuse.playground.kafka.QueueMessageSerializer
 import io.github.rbleuse.playground.proto.QueueMessages
+import org.apache.kafka.clients.admin.AdminClient
+import org.apache.kafka.clients.admin.AlterConfigOp
+import org.apache.kafka.clients.admin.ConfigEntry
+import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.AcknowledgeType
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.config.ConfigResource
+import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
+import org.springframework.core.log.LogAccessor
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.DefaultShareConsumerFactory
+import org.springframework.kafka.core.KafkaAdmin
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.core.ShareConsumerFactory
 import org.springframework.kafka.config.ShareKafkaListenerContainerFactory
+import org.springframework.kafka.support.KafkaUtils
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+import org.springframework.kafka.support.serializer.SerializationUtils
 
 @Configuration
 @EnableKafka
@@ -38,7 +51,35 @@ class KafkaQueueConfiguration(
     ) = KafkaTemplate(producerFactory)
 
     @Bean
-    fun shareConsumerFactory(): ShareConsumerFactory<String, QueueMessages.QueueMessage> {
+    fun byteProducerFactory(): ProducerFactory<String, ByteArray> {
+        val properties = kafkaProperties.buildProducerProperties()
+        properties[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
+        properties[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = ByteArraySerializer::class.java
+        return DefaultKafkaProducerFactory(properties)
+    }
+
+    @Bean
+    fun byteKafkaTemplate(
+        byteProducerFactory: ProducerFactory<String, ByteArray>,
+    ) = KafkaTemplate(byteProducerFactory)
+
+    @Bean
+    fun queueTopics(
+        @Value("\${playground.kafka.topic}") topic: String,
+        @Value("\${playground.kafka.dlt-topic}") dltTopic: String,
+    ) = KafkaAdmin.NewTopics(
+        NewTopic(topic, 1, 1.toShort()),
+        NewTopic(dltTopic, 1, 1.toShort()),
+    )
+
+    @Bean
+    fun shareConsumerFactory(
+        @Value("\${playground.kafka.share-group}") shareGroup: String,
+        @Value("\${playground.kafka.listener-auto-startup:true}") listenerAutoStartup: Boolean,
+    ): ShareConsumerFactory<String, QueueMessages.QueueMessage> {
+        if (listenerAutoStartup) {
+            configureShareGroup(shareGroup)
+        }
         val properties = kafkaProperties.buildConsumerProperties()
         properties.remove(ConsumerConfig.ISOLATION_LEVEL_CONFIG)
         properties[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
@@ -47,8 +88,41 @@ class KafkaQueueConfiguration(
         return DefaultShareConsumerFactory(properties)
     }
 
+    private fun configureShareGroup(shareGroup: String) {
+        AdminClient.create(kafkaProperties.buildAdminProperties()).use { admin ->
+            admin.incrementalAlterConfigs(
+                mapOf(
+                    ConfigResource(ConfigResource.Type.GROUP, shareGroup) to listOf(
+                        AlterConfigOp(
+                            ConfigEntry("share.auto.offset.reset", "earliest"),
+                            AlterConfigOp.OpType.SET,
+                        ),
+                    ),
+                ),
+            ).all().get()
+        }
+    }
+
     @Bean
     fun shareKafkaListenerContainerFactory(
         shareConsumerFactory: ShareConsumerFactory<String, QueueMessages.QueueMessage>,
-    ) = ShareKafkaListenerContainerFactory(shareConsumerFactory)
+        byteKafkaTemplate: KafkaTemplate<String, ByteArray>,
+        @Value("\${playground.kafka.dlt-topic}") dltTopic: String,
+    ) = ShareKafkaListenerContainerFactory(shareConsumerFactory).apply {
+        setShareConsumerRecordRecoverer { record, _ ->
+            byteKafkaTemplate.send(dltTopic, originalBytes(record)).get()
+            AcknowledgeType.REJECT
+        }
+    }
+
+    private fun originalBytes(record: ConsumerRecord<*, *>): ByteArray =
+        SerializationUtils.getExceptionFromHeader(
+            record,
+            KafkaUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER,
+            logAccessor,
+        )?.data ?: error("Missing value deserialization failure header")
+
+    private companion object {
+        val logAccessor = LogAccessor(KafkaQueueConfiguration::class.java)
+    }
 }
