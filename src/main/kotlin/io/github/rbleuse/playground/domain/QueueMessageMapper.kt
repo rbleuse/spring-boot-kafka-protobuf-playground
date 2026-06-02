@@ -12,7 +12,7 @@ import java.util.UUID
 @Component
 class QueueMessageMapper {
 
-	fun map(request: PublishMessageRequest): QueueMessages.QueueMessage {
+	fun toProto(request: PublishMessageRequest): QueueMessages.QueueMessage {
 		val message = QueueMessages.QueueMessage.newBuilder()
 			.setId(UUID.randomUUID().toString())
 

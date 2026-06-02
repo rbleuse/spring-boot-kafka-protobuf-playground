@@ -15,7 +15,7 @@ class QueueMessageMapperTests {
 
 	@Test
 	fun `maps email request to email payload`() {
-		val message = mapper.map(EmailRequest(recipient = "person@example.com", subject = "Hello"))
+		val message = mapper.toProto(EmailRequest(recipient = "person@example.com", subject = "Hello"))
 
 		UUID.fromString(message.id)
 		assertEquals(PayloadCase.EMAIL, message.payloadCase)
@@ -25,7 +25,7 @@ class QueueMessageMapperTests {
 
 	@Test
 	fun `maps sms request to sms payload`() {
-		val message = mapper.map(SmsRequest(phoneNumber = "+15551234567", text = "On my way"))
+		val message = mapper.toProto(SmsRequest(phoneNumber = "+15551234567", text = "On my way"))
 
 		UUID.fromString(message.id)
 		assertEquals(PayloadCase.SMS, message.payloadCase)
@@ -35,7 +35,7 @@ class QueueMessageMapperTests {
 
 	@Test
 	fun `maps push request to push payload`() {
-		val message = mapper.map(PushRequest(deviceToken = "device-token", title = "New message"))
+		val message = mapper.toProto(PushRequest(deviceToken = "device-token", title = "New message"))
 
 		UUID.fromString(message.id)
 		assertEquals(PayloadCase.PUSH, message.payloadCase)
@@ -45,7 +45,7 @@ class QueueMessageMapperTests {
 
 	@Test
 	fun `maps audit request to audit payload`() {
-		val message = mapper.map(AuditRequest(actor = "admin", action = "user-disabled"))
+		val message = mapper.toProto(AuditRequest(actor = "admin", action = "user-disabled"))
 
 		UUID.fromString(message.id)
 		assertEquals(PayloadCase.AUDIT, message.payloadCase)
