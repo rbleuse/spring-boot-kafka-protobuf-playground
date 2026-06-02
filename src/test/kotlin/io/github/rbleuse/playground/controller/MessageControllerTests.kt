@@ -2,15 +2,19 @@ package io.github.rbleuse.playground.controller
 
 import io.github.rbleuse.playground.domain.QueueMessageMapper
 import io.github.rbleuse.playground.kafka.MessagePublisher
+import io.github.rbleuse.playground.kafka.logPublishFailure
 import io.github.rbleuse.playground.proto.QueueMessages
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.slf4j.Logger
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.support.SendResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import java.util.concurrent.CompletableFuture
 
 class MessageControllerTests {
 
@@ -43,10 +47,23 @@ class MessagePublisherTests {
 			.setId("message-id")
 			.build()
 		`when`(mapper.toProto(request)).thenReturn(message)
+		`when`(kafkaTemplate.send("playground.queue", "message-id", message))
+			.thenReturn(CompletableFuture.completedFuture(null))
 
 		publisher.publish(request)
 
 		verify(mapper).toProto(request)
 		verify(kafkaTemplate).send("playground.queue", "message-id", message)
+	}
+
+	@Test
+	fun `logs message id when kafka send fails asynchronously`() {
+		val logger = mock(Logger::class.java)
+		val exception = IllegalStateException("broker unavailable")
+
+		CompletableFuture.failedFuture<SendResult<String, QueueMessages.QueueMessage>>(exception)
+			.whenComplete(logPublishFailure(logger, "message-id"))
+
+		verify(logger).error("Failed to publish queue message id={}", "message-id", exception)
 	}
 }
