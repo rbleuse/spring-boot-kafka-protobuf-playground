@@ -25,3 +25,23 @@ services:
       timeout: 10s
       retries: 30
       start_period: 5s
+
+  # share.auto.offset.reset is a group-level dynamic config (no broker/env-var equivalent),
+  # so a one-shot container sets it on the share group instead of doing it in application code.
+  kafka-init:
+    image: apache/kafka:4.2.1
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: "no"
+    command:
+      - /opt/kafka/bin/kafka-configs.sh
+      - --bootstrap-server
+      - kafka:19092
+      - --alter
+      - --entity-type
+      - groups
+      - --entity-name
+      - playground.queue.workers
+      - --add-config
+      - share.auto.offset.reset=earliest

@@ -128,6 +128,7 @@ class KafkaQueueIntegrationTests
         private companion object {
             const val TOPIC = "playground.queue"
             const val DLT_TOPIC = "playground.queue.DLT"
+            const val SHARE_GROUP = "playground.queue.workers"
 
             @Container
             @JvmStatic
@@ -150,6 +151,20 @@ class KafkaQueueIntegrationTests
                         "share.version=1",
                     )
                 check(result.exitCode == 0) { result.stderr }
+                val shareGroupConfig =
+                    kafka.execInContainer(
+                        "/opt/kafka/bin/kafka-configs.sh",
+                        "--bootstrap-server",
+                        "localhost:9093",
+                        "--alter",
+                        "--entity-type",
+                        "groups",
+                        "--entity-name",
+                        SHARE_GROUP,
+                        "--add-config",
+                        "share.auto.offset.reset=earliest",
+                    )
+                check(shareGroupConfig.exitCode == 0) { shareGroupConfig.stderr }
                 AdminClient
                     .create(
                         mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to kafka.bootstrapServers),
