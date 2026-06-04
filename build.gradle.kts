@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "4.1.0-RC1"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("com.google.protobuf") version "0.10.0"
+	id("org.jmailen.kotlinter") version "5.5.0"
 }
 
 group = "io.github.rbleuse"

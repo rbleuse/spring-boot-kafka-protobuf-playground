@@ -12,10 +12,16 @@ class QueueMessageSerdeTests {
 
     @Test
     fun `round trips protobuf message`() {
-        val message = QueueMessages.QueueMessage.newBuilder()
-            .setId("message-1")
-            .setAudit(QueueMessages.Audit.newBuilder().setActor("demo").setAction("login"))
-            .build()
+        val message =
+            QueueMessages.QueueMessage
+                .newBuilder()
+                .setId("message-1")
+                .setAudit(
+                    QueueMessages.Audit
+                        .newBuilder()
+                        .setActor("demo")
+                        .setAction("login"),
+                ).build()
 
         deserializer.deserialize("playground.queue", serializer.serialize("playground.queue", message)) shouldBe message
     }

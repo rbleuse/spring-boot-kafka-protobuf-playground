@@ -7,11 +7,17 @@ import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serializer
 
 class QueueMessageSerializer : Serializer<QueueMessages.QueueMessage> {
-    override fun serialize(topic: String?, data: QueueMessages.QueueMessage?): ByteArray? = data?.toByteArray()
+    override fun serialize(
+        topic: String?,
+        data: QueueMessages.QueueMessage?,
+    ): ByteArray? = data?.toByteArray()
 }
 
 class QueueMessageDeserializer : Deserializer<QueueMessages.QueueMessage> {
-    override fun deserialize(topic: String?, data: ByteArray?): QueueMessages.QueueMessage? {
+    override fun deserialize(
+        topic: String?,
+        data: ByteArray?,
+    ): QueueMessages.QueueMessage? {
         if (data == null) {
             return null
         }

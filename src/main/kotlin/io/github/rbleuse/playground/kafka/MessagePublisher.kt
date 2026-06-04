@@ -12,28 +12,28 @@ import org.springframework.stereotype.Component
 import java.util.function.BiConsumer
 
 internal fun logPublishFailure(
-	logger: Logger,
-	messageId: String,
+    logger: Logger,
+    messageId: String,
 ) = BiConsumer<SendResult<String, QueueMessages.QueueMessage>?, Throwable?> { _, exception ->
-	if (exception != null) {
-		logger.error("Failed to publish queue message id={}", messageId, exception)
-	}
+    if (exception != null) {
+        logger.error("Failed to publish queue message id={}", messageId, exception)
+    }
 }
 
 @Component
 class MessagePublisher(
-	private val kafkaTemplate: KafkaTemplate<String, QueueMessages.QueueMessage>,
-	private val mapper: QueueMessageMapper,
-	@Value("\${playground.kafka.topic}") private val topic: String,
+    private val kafkaTemplate: KafkaTemplate<String, QueueMessages.QueueMessage>,
+    private val mapper: QueueMessageMapper,
+    @Value("\${playground.kafka.topic}") private val topic: String,
 ) {
+    fun publish(request: PublishMessageRequest) {
+        val message = mapper.toProto(request)
+        kafkaTemplate
+            .send(topic, message.id, message)
+            .whenComplete(logPublishFailure(logger, message.id))
+    }
 
-	fun publish(request: PublishMessageRequest) {
-		val message = mapper.toProto(request)
-		kafkaTemplate.send(topic, message.id, message)
-			.whenComplete(logPublishFailure(logger, message.id))
-	}
-
-	private companion object {
-		val logger = LoggerFactory.getLogger(MessagePublisher::class.java)
-	}
+    private companion object {
+        val logger = LoggerFactory.getLogger(MessagePublisher::class.java)
+    }
 }

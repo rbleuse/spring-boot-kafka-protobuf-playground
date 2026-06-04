@@ -17,52 +17,53 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import java.util.concurrent.CompletableFuture
 
 class MessageControllerTests {
+    @Test
+    fun `publishes email request and accepts submission`() {
+        val publisher = mockk<MessagePublisher>(relaxed = true)
+        val mockMvc = MockMvcBuilders.standaloneSetup(MessageController(publisher)).build()
 
-	@Test
-	fun `publishes email request and accepts submission`() {
-		val publisher = mockk<MessagePublisher>(relaxed = true)
-		val mockMvc = MockMvcBuilders.standaloneSetup(MessageController(publisher)).build()
+        mockMvc
+            .perform(
+                post("/messages")
+                    .contentType("application/json")
+                    .content("""{"type":"email","recipient":"person@example.com","subject":"Hello"}"""),
+            ).andExpect(status().isAccepted)
 
-		mockMvc.perform(
-			post("/messages")
-				.contentType("application/json")
-				.content("""{"type":"email","recipient":"person@example.com","subject":"Hello"}"""),
-		)
-			.andExpect(status().isAccepted)
-
-		verify { publisher.publish(EmailRequest(recipient = "person@example.com", subject = "Hello")) }
-	}
+        verify { publisher.publish(EmailRequest(recipient = "person@example.com", subject = "Hello")) }
+    }
 }
 
 class MessagePublisherTests {
+    @Test
+    fun `maps request and sends message id as kafka key`() {
+        val kafkaTemplate = mockk<KafkaTemplate<String, QueueMessages.QueueMessage>>()
+        val mapper = mockk<QueueMessageMapper>()
+        val publisher = MessagePublisher(kafkaTemplate, mapper, "playground.queue")
+        val request = EmailRequest(recipient = "person@example.com", subject = "Hello")
+        val message =
+            QueueMessages.QueueMessage
+                .newBuilder()
+                .setId("message-id")
+                .build()
+        every { mapper.toProto(request) } returns message
+        every { kafkaTemplate.send("playground.queue", "message-id", message) } returns
+            CompletableFuture.completedFuture(null)
 
-	@Test
-	fun `maps request and sends message id as kafka key`() {
-		val kafkaTemplate = mockk<KafkaTemplate<String, QueueMessages.QueueMessage>>()
-		val mapper = mockk<QueueMessageMapper>()
-		val publisher = MessagePublisher(kafkaTemplate, mapper, "playground.queue")
-		val request = EmailRequest(recipient = "person@example.com", subject = "Hello")
-		val message = QueueMessages.QueueMessage.newBuilder()
-			.setId("message-id")
-			.build()
-		every { mapper.toProto(request) } returns message
-		every { kafkaTemplate.send("playground.queue", "message-id", message) } returns
-			CompletableFuture.completedFuture(null)
+        publisher.publish(request)
 
-		publisher.publish(request)
+        verify { mapper.toProto(request) }
+        verify { kafkaTemplate.send("playground.queue", "message-id", message) }
+    }
 
-		verify { mapper.toProto(request) }
-		verify { kafkaTemplate.send("playground.queue", "message-id", message) }
-	}
+    @Test
+    fun `logs message id when kafka send fails asynchronously`() {
+        val logger = mockk<Logger>(relaxed = true)
+        val exception = IllegalStateException("broker unavailable")
 
-	@Test
-	fun `logs message id when kafka send fails asynchronously`() {
-		val logger = mockk<Logger>(relaxed = true)
-		val exception = IllegalStateException("broker unavailable")
+        CompletableFuture
+            .failedFuture<SendResult<String, QueueMessages.QueueMessage>>(exception)
+            .whenComplete(logPublishFailure(logger, "message-id"))
 
-		CompletableFuture.failedFuture<SendResult<String, QueueMessages.QueueMessage>>(exception)
-			.whenComplete(logPublishFailure(logger, "message-id"))
-
-		verify { logger.error("Failed to publish queue message id={}", "message-id", exception) }
-	}
+        verify { logger.error("Failed to publish queue message id={}", "message-id", exception) }
+    }
 }

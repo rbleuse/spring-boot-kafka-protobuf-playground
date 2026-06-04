@@ -22,11 +22,12 @@ class QueueMessageListener(
     fun listen(record: ConsumerRecord<String, QueueMessages.QueueMessage?>) {
         val message = record.value()
         if (message == null) {
-            val exception = SerializationUtils.getExceptionFromHeader(
-                record,
-                KafkaUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER,
-                logAccessor,
-            )
+            val exception =
+                SerializationUtils.getExceptionFromHeader(
+                    record,
+                    KafkaUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER,
+                    logAccessor,
+                )
             if (exception != null) {
                 throw exception
             }

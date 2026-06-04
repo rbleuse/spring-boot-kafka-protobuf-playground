@@ -4,8 +4,8 @@ import io.github.rbleuse.playground.proto.QueueMessages
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.common.record.TimestampType
 import org.apache.kafka.common.header.internals.RecordHeaders
+import org.apache.kafka.common.record.TimestampType
 import org.junit.jupiter.api.Test
 import org.springframework.kafka.support.serializer.DeserializationException
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
