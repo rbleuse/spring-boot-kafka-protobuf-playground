@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class SpringBootKafkaProtobuffApplication
 
 fun main(args: Array<String>) {
-	runApplication<SpringBootKafkaProtobuffApplication>(*args)
+    runApplication<SpringBootKafkaProtobuffApplication>(*args)
 }

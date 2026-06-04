@@ -24,4 +24,4 @@ jobs:
         uses: gradle/actions/dependency-submission@v6
         with:
           dependency-graph: generate-and-submit
-      - run: chmod +x gradlew && ./gradlew test
+      - run: chmod +x gradlew && ./gradlew lintKotlin test
