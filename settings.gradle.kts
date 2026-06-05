@@ -1,1 +1,1 @@
-rootProject.name = "spring-boot-kafka-protobuff"
+rootProject.name = "spring-boot-kafka-protobuff-playground"
