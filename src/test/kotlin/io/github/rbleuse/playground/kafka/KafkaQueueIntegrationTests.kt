@@ -133,24 +133,14 @@ class KafkaQueueIntegrationTests
             @Container
             @JvmStatic
             val kafka =
-                KafkaContainer(DockerImageName.parse("apache/kafka:4.2.1"))
-                    .withEnv("KAFKA_GROUP_SHARE_ENABLE", "true")
+                KafkaContainer(DockerImageName.parse("apache/kafka:4.3.0"))
+                    // KafkaContainer replaces the image's single-node defaults with production values.
                     .withEnv("KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR", "1")
                     .withEnv("KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR", "1")
 
             @DynamicPropertySource
             @JvmStatic
             fun kafkaProperties(registry: DynamicPropertyRegistry) {
-                val result =
-                    kafka.execInContainer(
-                        "/opt/kafka/bin/kafka-features.sh",
-                        "--bootstrap-controller",
-                        "localhost:9094",
-                        "upgrade",
-                        "--feature",
-                        "share.version=1",
-                    )
-                check(result.exitCode == 0) { result.stderr }
                 val shareGroupConfig =
                     kafka.execInContainer(
                         "/opt/kafka/bin/kafka-configs.sh",
