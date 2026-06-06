@@ -6,9 +6,12 @@ Run the app with:
 .\gradlew.bat bootRun
 ```
 
-Spring Boot Compose support starts `apache/kafka:4.2.1` from `compose.yaml`.
-The broker healthcheck enables the Kafka queue feature `share.version=1` before
-the app connects.
+Spring Boot Compose support starts `apache/kafka:4.3.0` from `compose.yaml`.
+Kafka 4.3 enables the stable share-group feature in fresh clusters, while a
+one-shot Compose service configures `playground.queue.workers` to start at the
+earliest available record. The single-node Compose and Testcontainers brokers
+also reduce the internal share-state topic replication factor and minimum ISR
+to one.
 
 Publish an email:
 
