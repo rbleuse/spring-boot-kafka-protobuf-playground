@@ -10,8 +10,6 @@ plugins {
 group = "io.github.rbleuse"
 version = "0.0.1-SNAPSHOT"
 
-val protobufVersion = "4.35.0"
-
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(25)
@@ -25,7 +23,8 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-kafka")
-	implementation("com.google.protobuf:protobuf-java:$protobufVersion")
+	implementation("com.google.protobuf:protobuf-java")
+	runtimeOnly("com.google.protobuf:protobuf-java-util")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
@@ -39,10 +38,7 @@ dependencies {
 }
 
 protobuf {
-	protoc {
-		artifact = "com.google.protobuf:protoc:$protobufVersion"
-	}
-	// Spring Boot 4.1.0-RC1 injects an unused gRPC generator without a managed version; remove it from the tool locator and generated tasks.
+	// This app only generates protobuf messages; skip unused gRPC generation.
 	plugins {
 		remove(getByName("grpc"))
 	}
