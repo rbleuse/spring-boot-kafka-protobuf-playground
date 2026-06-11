@@ -1,6 +1,6 @@
 spring:
   application:
-    name: spring-boot-kafka-protobuff-playground
+    name: spring-boot-kafka-protobuf-playground
 
 playground:
   kafka:

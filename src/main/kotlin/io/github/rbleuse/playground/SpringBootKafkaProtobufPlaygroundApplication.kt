@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class SpringBootKafkaProtobuffPlaygroundApplication
+class SpringBootKafkaProtobufPlaygroundApplication
 
 fun main(args: Array<String>) {
-    runApplication<SpringBootKafkaProtobuffPlaygroundApplication>(*args)
+    runApplication<SpringBootKafkaProtobufPlaygroundApplication>(*args)
 }

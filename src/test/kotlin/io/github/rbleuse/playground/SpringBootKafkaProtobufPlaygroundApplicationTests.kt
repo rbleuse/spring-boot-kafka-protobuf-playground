@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest(properties = ["playground.kafka.listener-auto-startup=false"])
-class SpringBootKafkaProtobuffPlaygroundApplicationTests {
+class SpringBootKafkaProtobufPlaygroundApplicationTests {
     @Test
     fun contextLoads() {
     }
