@@ -33,7 +33,7 @@ dependencies {
 	testImplementation("com.ninja-squad:springmockk:5.0.1")
 	testImplementation("org.testcontainers:testcontainers-kafka")
 	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
-	testImplementation("io.kotest:kotest-assertions-core-jvm:6.2.4")
+	testImplementation("io.kotest:kotest-assertions-core-jvm:6.2.5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
