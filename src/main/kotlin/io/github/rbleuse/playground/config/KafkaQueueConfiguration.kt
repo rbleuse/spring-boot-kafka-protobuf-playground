@@ -13,6 +13,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.kafka.autoconfigure.KafkaConfigBuilder
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -36,7 +37,7 @@ class KafkaQueueConfiguration(
 ) {
     @Bean
     fun producerFactory(): ProducerFactory<String, QueueMessages.QueueMessage> {
-        val properties = kafkaProperties.buildProducerProperties()
+        val properties = KafkaConfigBuilder.of(kafkaProperties).producer().build()
         properties[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
         properties[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = QueueMessageSerializer::class.java
         return DefaultKafkaProducerFactory(properties)
@@ -47,7 +48,7 @@ class KafkaQueueConfiguration(
 
     @Bean
     fun byteProducerFactory(): ProducerFactory<String, ByteArray> {
-        val properties = kafkaProperties.buildProducerProperties()
+        val properties = KafkaConfigBuilder.of(kafkaProperties).producer().build()
         properties[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
         properties[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = ByteArraySerializer::class.java
         return DefaultKafkaProducerFactory(properties)
@@ -67,7 +68,7 @@ class KafkaQueueConfiguration(
 
     @Bean
     fun shareConsumerFactory(): ShareConsumerFactory<String, QueueMessages.QueueMessage> {
-        val properties = kafkaProperties.buildConsumerProperties()
+        val properties = KafkaConfigBuilder.of(kafkaProperties).consumer().build()
         properties.remove(ConsumerConfig.ISOLATION_LEVEL_CONFIG)
         properties[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         properties[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = ErrorHandlingDeserializer::class.java
