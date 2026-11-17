@@ -1,5 +1,5 @@
 plugins {
-	kotlin("jvm") version "2.4.10"
+	kotlin("jvm") version "2.4.21"
 	kotlin("plugin.spring") version "2.4.10"
 	id("org.springframework.boot") version "4.2.0-SNAPSHOT"
 	id("io.spring.dependency-management") version "1.1.7"
@@ -22,6 +22,9 @@ repositories {
 }
 
 dependencies {
+	// shortcut: keep ktlint 1.8.0's compiler out of Boot's alignment; revisit on kotlinter upgrades.
+	add("ktlint", "org.jetbrains.kotlin:kotlin-compiler-embeddable:2.2.21")
+
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-kafka")
 	implementation("com.google.protobuf:protobuf-java")
