@@ -133,7 +133,7 @@ class KafkaQueueIntegrationTests
             @Container
             @JvmStatic
             val kafka =
-                KafkaContainer(DockerImageName.parse("apache/kafka:4.3.0"))
+                KafkaContainer(DockerImageName.parse("apache/kafka:4.4.0"))
                     // KafkaContainer replaces the image's single-node defaults with production values.
                     .withEnv("KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR", "1")
                     .withEnv("KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR", "1")

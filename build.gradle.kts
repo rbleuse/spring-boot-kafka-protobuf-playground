@@ -1,9 +1,9 @@
 plugins {
 	kotlin("jvm") version "2.4.21"
 	kotlin("plugin.spring") version "2.4.21"
-	id("org.springframework.boot") version "4.2.0-SNAPSHOT"
+	id("org.springframework.boot") version "4.2.0-RC1"
 	id("io.spring.dependency-management") version "1.1.7"
-	id("com.google.protobuf") version "0.10.0"
+	id("com.google.protobuf") version "0.10.1"
 	id("org.jmailen.kotlinter") version "5.7.0"
 }
 
@@ -17,7 +17,6 @@ java {
 }
 
 repositories {
-	maven("https://repo.spring.io/snapshot")
 	mavenCentral()
 }
 
@@ -38,6 +37,13 @@ dependencies {
 	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testImplementation("io.kotest:kotest-assertions-core-jvm:6.2.6")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+// shortcut: Boot 4.2.0-RC1 misses Protobuf 0.10.1's empty protoc version; remove when automatic alignment is fixed.
+protobuf {
+	protoc {
+		artifact = "com.google.protobuf:protoc:${dependencyManagement.importedProperties.getValue("protobuf-java.version")}"
+	}
 }
 
 kotlin {
